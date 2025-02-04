@@ -77,3 +77,57 @@ document.getElementById('flight-form').addEventListener('submit', (e) => {
 
     window.location.href = `results.html?origin=${origin}&destination=${destination}&date=${date}`;
 });
+
+// script.js
+
+// Проверяем, находимся ли мы на странице результатов
+if (window.location.pathname.includes("results.html")) {
+    document.addEventListener('DOMContentLoaded', async () => {
+        const params = new URLSearchParams(window.location.search);
+        const origin = params.get('origin');
+        const destination = params.get('destination');
+        const date = params.get('date');
+
+        const resultsDiv = document.getElementById('results');
+        resultsDiv.innerHTML = "<p>Загрузка...</p>";
+
+        try {
+            // Отправляем запрос к бэкенду
+            const response = await fetch(`https://bot-back-i4in.onrender.com/search-flights?origin=${origin}&destination=${destination}&date=${date}`);
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || "Не удалось получить данные");
+            }
+            const data = await response.json();
+
+            if (data && data.data && data.data.length > 0) {
+                let flightsHtml = "";
+                data.data.forEach(flight => {
+                    const price = flight.price.total;
+                    const departure = flight.itineraries[0].segments[0].departure.at;
+                    const arrival = flight.itineraries[0].segments[0].arrival.at;
+                    const bookingLink = flight.links?.booking || "#"; // Проверяем наличие ссылки для бронирования
+
+                    flightsHtml += `
+                        <div class="flight-item">
+                            <p><strong>Цена:</strong> $${price}</p>
+                            <p><strong>Вылет:</strong> ${departure}</p>
+                            <p><strong>Прибытие:</strong> ${arrival}</p>
+                            <p>
+                                <a href="${bookingLink}" target="_blank" ${bookingLink === "#" ? "disabled" : ""}>
+                                    ${bookingLink === "#" ? "Бронирование недоступно" : "Забронировать"}
+                                </a>
+                            </p>
+                        </div>
+                    `;
+                });
+                resultsDiv.innerHTML = flightsHtml;
+            } else {
+                resultsDiv.innerHTML = "<p>Рейсы не найдены.</p>";
+            }
+        } catch (error) {
+            console.error("Ошибка:", error);
+            resultsDiv.innerHTML = `<p>Произошла ошибка: ${error.message}</p>`;
+        }
+    });
+}
