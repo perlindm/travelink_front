@@ -75,13 +75,13 @@ document.addEventListener("click", (e) => {
 
 // Обработчик формы
 document.addEventListener('DOMContentLoaded', () => {
-    const form = document.getElementById('flight-form');
-    if (!form) {
-        console.error("Элемент с id='flight-form' не найден!");
+    const searchButton = document.getElementById('search-button');
+    if (!searchButton) {
+        console.error("Элемент с id='search-button' не найден!");
         return;
     }
-    form.addEventListener('submit', (e) => {
-        e.preventDefault();
+
+    searchButton.addEventListener('click', () => {
         const originInput = document.getElementById('origin');
         const destinationInput = document.getElementById('destination');
         const origin = originInput.dataset.iata || originInput.value.toUpperCase();
