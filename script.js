@@ -1,40 +1,45 @@
-// script.js
+let debounceTimer; // Для дебаунса
 
-// Функция для получения подсказок
 async function fetchSuggestions(query, inputId) {
     const suggestionsList = document.getElementById(`${inputId}-suggestions`);
     suggestionsList.innerHTML = "";
 
-    if (!query) {
+    if (query.length < 2) {
         suggestionsList.style.display = "none";
         return;
     }
 
-    try {
-        const response = await fetch(`/search-locations?query=${encodeURIComponent(query)}`);
-        if (!response.ok) {
-            throw new Error("Не удалось получить подсказки");
-        }
-        const data = await response.json();
+    clearTimeout(debounceTimer); // Очищаем предыдущий таймер
 
-        if (data && data.length > 0) {
-            data.forEach(location => {
-                const li = document.createElement("li");
-                li.textContent = `${location.name} (${location.iataCode})`;
-                li.addEventListener("click", () => {
-                    document.getElementById(inputId).value = location.iataCode; // Устанавливаем IATA-код
-                    suggestionsList.style.display = "none";
+    debounceTimer = setTimeout(async () => {
+        try {
+            const response = await fetch(`/search-locations?query=${encodeURIComponent(query)}`);
+            if (!response.ok) {
+                throw new Error("Не удалось получить подсказки");
+            }
+            const data = await response.json();
+
+            if (data.length > 0) {
+                data.forEach(location => {
+                    const li = document.createElement("li");
+                    li.textContent = `${location.name} (${location.iataCode})`;
+                    li.dataset.iata = location.iataCode; // Сохраняем IATA-код
+                    li.addEventListener("click", () => {
+                        document.getElementById(inputId).value = location.name; // Показываем название города
+                        document.getElementById(inputId).dataset.iata = location.iataCode; // Сохраняем IATA-код
+                        suggestionsList.style.display = "none";
+                    });
+                    suggestionsList.appendChild(li);
                 });
-                suggestionsList.appendChild(li);
-            });
-            suggestionsList.style.display = "block";
-        } else {
+                suggestionsList.style.display = "block";
+            } else {
+                suggestionsList.style.display = "none";
+            }
+        } catch (error) {
+            console.error("Ошибка:", error);
             suggestionsList.style.display = "none";
         }
-    } catch (error) {
-        console.error("Ошибка:", error);
-        suggestionsList.style.display = "none";
-    }
+    }, 300); // Дебаунс 300 мс
 }
 
 // Обработчики для полей ввода
@@ -46,7 +51,7 @@ document.getElementById("destination").addEventListener("input", (e) => {
     fetchSuggestions(e.target.value, "destination");
 });
 
-// Скрываем подсказки при клике вне поля
+// Скрытие подсказок при клике вне списка
 document.addEventListener("click", (e) => {
     if (!e.target.closest(".suggestions")) {
         document.getElementById("origin-suggestions").style.display = "none";
@@ -55,13 +60,18 @@ document.addEventListener("click", (e) => {
 });
 
 // Обработчик формы
-document.getElementById('flight-form').addEventListener('submit', async (e) => {
+document.getElementById('flight-form').addEventListener('submit', (e) => {
     e.preventDefault();
-
-    const origin = document.getElementById('origin').value.toUpperCase();
-    const destination = document.getElementById('destination').value.toUpperCase();
+    const originInput = document.getElementById('origin');
+    const destinationInput = document.getElementById('destination');
+    const origin = originInput.dataset.iata || originInput.value.toUpperCase();
+    const destination = destinationInput.dataset.iata || destinationInput.value.toUpperCase();
     const date = document.getElementById('date').value;
 
-    // Перенаправляем на страницу результатов с параметрами в URL
+    if (!origin || !destination || !date) {
+        alert("Please fill in all fields.");
+        return;
+    }
+
     window.location.href = `results.html?origin=${origin}&destination=${destination}&date=${date}`;
 });
