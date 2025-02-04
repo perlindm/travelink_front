@@ -34,7 +34,8 @@ p {
     margin-bottom: 20px;
 }
 
-.container > div {
+.input-group {
+    position: relative; /* Добавляем это свойство */
     margin-bottom: 15px;
     text-align: left;
 }
@@ -115,7 +116,7 @@ button:hover {
     box-sizing: border-box;
     z-index: 10;
     left: 0;
-    top: 100%;
+    top: 100%; /* Размещаем сразу под полем ввода */
     font-size: 14px;
     line-height: 1.4;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
