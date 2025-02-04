@@ -13,11 +13,13 @@ async function fetchSuggestions(query, inputId) {
 
     debounceTimer = setTimeout(async () => {
         try {
-            const response = await fetch(`/search-locations?query=${encodeURIComponent(query)}`);
+            console.log(`Fetching suggestions for query: ${query}`);
+            const response = await fetch(`https://bot-back-i4in.onrender.com/search-locations?query=${encodeURIComponent(query)}`);
             if (!response.ok) {
-                throw new Error("Не удалось получить подсказки");
+                throw new Error(`HTTP error! Status: ${response.status}`);
             }
             const data = await response.json();
+            console.log("Received data:", data);
 
             if (data.length > 0) {
                 data.forEach(location => {
@@ -36,7 +38,7 @@ async function fetchSuggestions(query, inputId) {
                 suggestionsList.style.display = "none";
             }
         } catch (error) {
-            console.error("Ошибка:", error);
+            console.error("Ошибка при получении подсказок:", error);
             suggestionsList.style.display = "none";
         }
     }, 300); // Дебаунс 300 мс
