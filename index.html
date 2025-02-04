@@ -12,16 +12,20 @@
         <h1>Добро пожаловать в TraveLink!</h1>
         <p>Найдите билеты через наш поиск:</p>
         <form id="flight-form">
-            <label for="origin">Город отправления (IATA):</label>
-            <input type="text" id="origin" placeholder="Например, LON" required>
-            <label for="destination">Город назначения (IATA):</label>
-            <input type="text" id="destination" placeholder="Например, NYC" required>
+            <label for="origin">Город отправления:</label>
+            <input type="text" id="origin" placeholder="Например, London" required>
+            <ul id="origin-suggestions" class="suggestions"></ul>
+
+            <label for="destination">Город назначения:</label>
+            <input type="text" id="destination" placeholder="Например, New York" required>
+            <ul id="destination-suggestions" class="suggestions"></ul>
+
             <label for="date">Дата вылета:</label>
             <input type="date" id="date" required>
+
             <button type="submit">Найти билеты</button>
         </form>
         <div id="result"></div>
-        <!-- Новые кнопки -->
         <div class="footer-buttons">
             <button id="ready-trips" class="btn">Готовые путешествия 🌍</button>
             <a href="https://www.tiktok.com/@wotnats" target="_blank" class="btn tiktok-btn">
