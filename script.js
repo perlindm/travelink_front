@@ -7,16 +7,12 @@ async function fetchSuggestions(query, inputId) {
         console.error(`Элемент с id='${inputId}-suggestions' не найден!`);
         return;
     }
-
     suggestionsList.innerHTML = "";
-
     if (query.length < 2) {
-        suggestionsList.style.display = "none";
+        suggestionsList.classList.remove("active");
         return;
     }
-
     clearTimeout(debounceTimer); // Очищаем предыдущий таймер
-
     debounceTimer = setTimeout(async () => {
         try {
             console.log(`Fetching suggestions for query: ${query}`);
@@ -26,7 +22,6 @@ async function fetchSuggestions(query, inputId) {
             }
             const data = await response.json();
             console.log("Полученные данные:", data);
-
             if (data.length > 0) {
                 data.forEach(location => {
                     const li = document.createElement("li");
@@ -35,19 +30,19 @@ async function fetchSuggestions(query, inputId) {
                     li.addEventListener("click", () => {
                         document.getElementById(inputId).value = location.name; // Показываем название города
                         document.getElementById(inputId).dataset.iata = location.iataCode; // Сохраняем IATA-код
-                        suggestionsList.style.display = "none";
+                        suggestionsList.classList.remove("active");
                     });
                     suggestionsList.appendChild(li);
                 });
-                suggestionsList.style.display = "block";
+                suggestionsList.classList.add("active");
             } else {
                 suggestionsList.innerHTML = "<li>Подсказки не найдены</li>";
-                suggestionsList.style.display = "block";
+                suggestionsList.classList.add("active");
             }
         } catch (error) {
             console.error("Ошибка при получении подсказок:", error);
             suggestionsList.innerHTML = `<li>Ошибка: ${error.message}</li>`;
-            suggestionsList.style.display = "block";
+            suggestionsList.classList.add("active");
         }
     }, 300); // Дебаунс 300 мс
 }
@@ -60,20 +55,12 @@ const destinationSuggestions = document.getElementById("destination-suggestions"
 
 if (originInput && originSuggestions) {
     originInput.addEventListener("input", (e) => {
-        if (e.target.value.length < 2) {
-            originSuggestions.innerHTML = "";
-            originSuggestions.style.display = "none";
-        }
         fetchSuggestions(e.target.value, "origin");
     });
 }
 
 if (destinationInput && destinationSuggestions) {
     destinationInput.addEventListener("input", (e) => {
-        if (e.target.value.length < 2) {
-            destinationSuggestions.innerHTML = "";
-            destinationSuggestions.style.display = "none";
-        }
         fetchSuggestions(e.target.value, "destination");
     });
 }
@@ -81,8 +68,8 @@ if (destinationInput && destinationSuggestions) {
 // Скрытие подсказок при клике вне списка
 document.addEventListener("click", (e) => {
     if (!e.target.closest(".suggestions")) {
-        if (originSuggestions) originSuggestions.style.display = "none";
-        if (destinationSuggestions) destinationSuggestions.style.display = "none";
+        if (originSuggestions) originSuggestions.classList.remove("active");
+        if (destinationSuggestions) destinationSuggestions.classList.remove("active");
     }
 });
 
@@ -93,7 +80,6 @@ document.addEventListener('DOMContentLoaded', () => {
         console.error("Элемент с id='flight-form' не найден!");
         return;
     }
-
     form.addEventListener('submit', (e) => {
         e.preventDefault();
         const originInput = document.getElementById('origin');
@@ -107,77 +93,6 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        if (!/^[A-Z]{3}$/.test(origin) || !/^[A-Z]{3}$/.test(destination)) {
-            alert("Пожалуйста, выберите корректные значения для пунктов отправления и назначения.");
-            return;
-        }
-
         window.location.href = `results.html?origin=${origin}&destination=${destination}&date=${date}`;
     });
 });
-
-// Логика для страницы результатов
-if (window.location.pathname.includes("results.html")) {
-    document.addEventListener('DOMContentLoaded', async () => {
-        const params = new URLSearchParams(window.location.search);
-        const origin = params.get('origin');
-        const destination = params.get('destination');
-        const date = params.get('date');
-
-        const resultsDiv = document.getElementById('results');
-        if (!resultsDiv) {
-            console.error("Элемент с id='results' не найден!");
-            return;
-        }
-
-        resultsDiv.innerHTML = "<p>Загрузка...</p>";
-
-        try {
-            console.log("Отправляем запрос к бэкенду:", { origin, destination, date });
-
-            const response = await fetch(`https://bot-back-i4in.onrender.com/search-flights?origin=${origin}&destination=${destination}&date=${date}`);
-            console.log("Статус ответа:", response.status);
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || "Не удалось получить данные");
-            }
-
-            const data = await response.json();
-            console.log("Полученные данные:", data);
-
-            if (data && data.data && data.data.length > 0) {
-                let flightsHtml = "";
-                data.data.forEach(flight => {
-                    const price = flight.price.total;
-                    const departure = new Date(flight.itineraries[0].segments[0].departure.at);
-                    const arrival = new Date(flight.itineraries[0].segments[0].arrival.at);
-                    const bookingLink = flight.links?.booking || "#"; // Проверяем наличие ссылки для бронирования
-
-                    const options = { year: "numeric", month: "long", day: "numeric", hour: "2-digit", minute: "2-digit" };
-                    const formattedDeparture = departure.toLocaleString("ru-RU", options);
-                    const formattedArrival = arrival.toLocaleString("ru-RU", options);
-
-                    flightsHtml += `
-                        <div class="flight-item">
-                            <p><strong>Цена:</strong> $${price}</p>
-                            <p><strong>Вылет:</strong> ${formattedDeparture}</p>
-                            <p><strong>Прибытие:</strong> ${formattedArrival}</p>
-                            <p>
-                                <a href="${bookingLink}" target="_blank" ${bookingLink === "#" ? "disabled" : ""}>
-                                    ${bookingLink === "#" ? "Бронирование недоступно" : "Забронировать"}
-                                </a>
-                            </p>
-                        </div>
-                    `;
-                });
-                resultsDiv.innerHTML = flightsHtml;
-            } else {
-                resultsDiv.innerHTML = "<p>Рейсы не найдены.</p>";
-            }
-        } catch (error) {
-            console.error("Ошибка:", error);
-            resultsDiv.innerHTML = `<p>Произошла ошибка: ${error.message}</p>`;
-        }
-    });
-}
