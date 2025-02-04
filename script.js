@@ -1,5 +1,6 @@
 let debounceTimer; // Для дебаунса
 
+// Функция для получения подсказок
 async function fetchSuggestions(query, inputId) {
     const suggestionsList = document.getElementById(`${inputId}-suggestions`);
     suggestionsList.innerHTML = "";
@@ -45,42 +46,48 @@ async function fetchSuggestions(query, inputId) {
 }
 
 // Обработчики для полей ввода
-document.getElementById("origin").addEventListener("input", (e) => {
+document.getElementById("origin")?.addEventListener("input", (e) => {
     fetchSuggestions(e.target.value, "origin");
 });
 
-document.getElementById("destination").addEventListener("input", (e) => {
+document.getElementById("destination")?.addEventListener("input", (e) => {
     fetchSuggestions(e.target.value, "destination");
 });
 
 // Скрытие подсказок при клике вне списка
 document.addEventListener("click", (e) => {
     if (!e.target.closest(".suggestions")) {
-        document.getElementById("origin-suggestions").style.display = "none";
-        document.getElementById("destination-suggestions").style.display = "none";
+        document.getElementById("origin-suggestions")?.style.display = "none";
+        document.getElementById("destination-suggestions")?.style.display = "none";
     }
 });
 
 // Обработчик формы
-document.getElementById('flight-form').addEventListener('submit', (e) => {
-    e.preventDefault();
-    const originInput = document.getElementById('origin');
-    const destinationInput = document.getElementById('destination');
-    const origin = originInput.dataset.iata || originInput.value.toUpperCase();
-    const destination = destinationInput.dataset.iata || destinationInput.value.toUpperCase();
-    const date = document.getElementById('date').value;
-
-    if (!origin || !destination || !date) {
-        alert("Please fill in all fields.");
+document.addEventListener('DOMContentLoaded', () => {
+    const form = document.getElementById('flight-form');
+    if (!form) {
+        console.error("Элемент с id='flight-form' не найден!");
         return;
     }
 
-    window.location.href = `results.html?origin=${origin}&destination=${destination}&date=${date}`;
+    form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const originInput = document.getElementById('origin');
+        const destinationInput = document.getElementById('destination');
+        const origin = originInput.dataset.iata || originInput.value.toUpperCase();
+        const destination = destinationInput.dataset.iata || destinationInput.value.toUpperCase();
+        const date = document.getElementById('date').value;
+
+        if (!origin || !destination || !date) {
+            alert("Please fill in all fields.");
+            return;
+        }
+
+        window.location.href = `results.html?origin=${origin}&destination=${destination}&date=${date}`;
+    });
 });
 
-// script.js
-
-// Проверяем, находимся ли мы на странице результатов
+// Логика для страницы результатов
 if (window.location.pathname.includes("results.html")) {
     document.addEventListener('DOMContentLoaded', async () => {
         const params = new URLSearchParams(window.location.search);
@@ -89,16 +96,26 @@ if (window.location.pathname.includes("results.html")) {
         const date = params.get('date');
 
         const resultsDiv = document.getElementById('results');
+        if (!resultsDiv) {
+            console.error("Элемент с id='results' не найден!");
+            return;
+        }
+
         resultsDiv.innerHTML = "<p>Загрузка...</p>";
 
         try {
-            // Отправляем запрос к бэкенду
+            console.log("Отправляем запрос к бэкенду:", { origin, destination, date });
+
             const response = await fetch(`https://bot-back-i4in.onrender.com/search-flights?origin=${origin}&destination=${destination}&date=${date}`);
+            console.log("Статус ответа:", response.status);
+
             if (!response.ok) {
                 const errorData = await response.json();
                 throw new Error(errorData.error || "Не удалось получить данные");
             }
+
             const data = await response.json();
+            console.log("Полученные данные:", data);
 
             if (data && data.data && data.data.length > 0) {
                 let flightsHtml = "";
