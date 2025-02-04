@@ -3,6 +3,11 @@ let debounceTimer; // Для дебаунса
 // Функция для получения подсказок
 async function fetchSuggestions(query, inputId) {
     const suggestionsList = document.getElementById(`${inputId}-suggestions`);
+    if (!suggestionsList) {
+        console.error(`Элемент с id='${inputId}-suggestions' не найден!`);
+        return;
+    }
+
     suggestionsList.innerHTML = "";
 
     if (query.length < 2) {
@@ -17,10 +22,10 @@ async function fetchSuggestions(query, inputId) {
             console.log(`Fetching suggestions for query: ${query}`);
             const response = await fetch(`https://bot-back-i4in.onrender.com/search-locations?query=${encodeURIComponent(query)}`);
             if (!response.ok) {
-                throw new Error(`HTTP error! Status: ${response.status}`);
+                throw new Error(`Ошибка при получении подсказок (Статус: ${response.status})`);
             }
             const data = await response.json();
-            console.log("Received data:", data);
+            console.log("Полученные данные:", data);
 
             if (data.length > 0) {
                 data.forEach(location => {
@@ -36,29 +41,48 @@ async function fetchSuggestions(query, inputId) {
                 });
                 suggestionsList.style.display = "block";
             } else {
-                suggestionsList.style.display = "none";
+                suggestionsList.innerHTML = "<li>Подсказки не найдены</li>";
+                suggestionsList.style.display = "block";
             }
         } catch (error) {
             console.error("Ошибка при получении подсказок:", error);
-            suggestionsList.style.display = "none";
+            suggestionsList.innerHTML = `<li>Ошибка: ${error.message}</li>`;
+            suggestionsList.style.display = "block";
         }
     }, 300); // Дебаунс 300 мс
 }
 
 // Обработчики для полей ввода
-document.getElementById("origin")?.addEventListener("input", (e) => {
-    fetchSuggestions(e.target.value, "origin");
-});
+const originInput = document.getElementById("origin");
+const destinationInput = document.getElementById("destination");
+const originSuggestions = document.getElementById("origin-suggestions");
+const destinationSuggestions = document.getElementById("destination-suggestions");
 
-document.getElementById("destination")?.addEventListener("input", (e) => {
-    fetchSuggestions(e.target.value, "destination");
-});
+if (originInput && originSuggestions) {
+    originInput.addEventListener("input", (e) => {
+        if (e.target.value.length < 2) {
+            originSuggestions.innerHTML = "";
+            originSuggestions.style.display = "none";
+        }
+        fetchSuggestions(e.target.value, "origin");
+    });
+}
+
+if (destinationInput && destinationSuggestions) {
+    destinationInput.addEventListener("input", (e) => {
+        if (e.target.value.length < 2) {
+            destinationSuggestions.innerHTML = "";
+            destinationSuggestions.style.display = "none";
+        }
+        fetchSuggestions(e.target.value, "destination");
+    });
+}
 
 // Скрытие подсказок при клике вне списка
 document.addEventListener("click", (e) => {
     if (!e.target.closest(".suggestions")) {
-        document.getElementById("origin-suggestions")?.style.display = "none";
-        document.getElementById("destination-suggestions")?.style.display = "none";
+        if (originSuggestions) originSuggestions.style.display = "none";
+        if (destinationSuggestions) destinationSuggestions.style.display = "none";
     }
 });
 
@@ -79,7 +103,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const date = document.getElementById('date').value;
 
         if (!origin || !destination || !date) {
-            alert("Please fill in all fields.");
+            alert("Пожалуйста, заполните все поля.");
+            return;
+        }
+
+        if (!/^[A-Z]{3}$/.test(origin) || !/^[A-Z]{3}$/.test(destination)) {
+            alert("Пожалуйста, выберите корректные значения для пунктов отправления и назначения.");
             return;
         }
 
@@ -121,15 +150,19 @@ if (window.location.pathname.includes("results.html")) {
                 let flightsHtml = "";
                 data.data.forEach(flight => {
                     const price = flight.price.total;
-                    const departure = flight.itineraries[0].segments[0].departure.at;
-                    const arrival = flight.itineraries[0].segments[0].arrival.at;
+                    const departure = new Date(flight.itineraries[0].segments[0].departure.at);
+                    const arrival = new Date(flight.itineraries[0].segments[0].arrival.at);
                     const bookingLink = flight.links?.booking || "#"; // Проверяем наличие ссылки для бронирования
+
+                    const options = { year: "numeric", month: "long", day: "numeric", hour: "2-digit", minute: "2-digit" };
+                    const formattedDeparture = departure.toLocaleString("ru-RU", options);
+                    const formattedArrival = arrival.toLocaleString("ru-RU", options);
 
                     flightsHtml += `
                         <div class="flight-item">
                             <p><strong>Цена:</strong> $${price}</p>
-                            <p><strong>Вылет:</strong> ${departure}</p>
-                            <p><strong>Прибытие:</strong> ${arrival}</p>
+                            <p><strong>Вылет:</strong> ${formattedDeparture}</p>
+                            <p><strong>Прибытие:</strong> ${formattedArrival}</p>
                             <p>
                                 <a href="${bookingLink}" target="_blank" ${bookingLink === "#" ? "disabled" : ""}>
                                     ${bookingLink === "#" ? "Бронирование недоступно" : "Забронировать"}
