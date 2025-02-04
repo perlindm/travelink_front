@@ -1,112 +1,76 @@
+/* Общие стили */
 body {
-    font-family: Arial, sans-serif;
+    font-family: 'Poppins', Arial, sans-serif;
     margin: 0;
     padding: 0;
-    background-color: #f4f4f9;
+    background: linear-gradient(135deg, #a3c8ff, #2963c0);
+    color: #333;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 .container {
-    max-width: 600px;
-    margin: 50px auto;
-    padding: 20px;
-    background: #fff;
-    border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    max-width: 500px;
+    width: 100%;
+    padding: 40px;
+    background: #dddddd;
+    border-radius: 15px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
     text-align: center;
+    animation: fadeIn 1s ease-in-out;
 }
 
 h1 {
-    color: #333;
+    font-size: 2rem;
+    color: #007bff;
+    margin-bottom: 10px;
+}
+
+p {
+    font-size: 1rem;
+    color: #666;
+    margin-bottom: 20px;
 }
 
 form {
     display: flex;
     flex-direction: column;
+    gap: 15px;
 }
 
 label {
-    margin-top: 10px;
     font-weight: bold;
-}
-
-input, button {
-    margin-top: 5px;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-}
-
-button {
-    background-color: #007bff;
-    color: white;
-    font-weight: bold;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-}
-
-button:hover {
-    background-color: #0056b3;
-}
-
-.back-link {
-    display: inline-block;
-    margin-bottom: 20px;
-    color: #007bff;
-    text-decoration: none;
-}
-
-.back-link:hover {
-    text-decoration: underline;
-}
-
-#results {
-    margin-top: 20px;
+    color: #333;
     text-align: left;
 }
 
-.flight-item {
-    padding: 10px;
-    border-bottom: 1px solid #ddd;
+input, button {
+    padding: 12px;
+    font-size: 1rem;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    transition: all 0.3s ease;
 }
 
-.flight-item a {
-    color: #007bff;
-    text-decoration: none;
+input:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 8px rgba(0, 123, 255, 0.3);
 }
 
-.flight-item a:hover {
-    text-decoration: underline;
-}
-
-.suggestions {
-    list-style-type: none;
-    padding: 0;
-    margin: 0;
-    border: 1px solid #ccc;
-    max-height: 150px; /* Ограничение высоты */
-    overflow-y: auto; /* Прокрутка при необходимости */
-    background: white;
-    position: absolute;
-    width: 100%; /* Ширина равна ширине поля ввода */
-    box-sizing: border-box; /* Учитываем padding и border в ширине */
-    z-index: 10; /* Размещаем поверх других элементов */
-    left: 0; /* Выравнивание по левому краю поля ввода */
-    top: 100%; /* Размещаем сразу под полем ввода */
-    font-size: 14px; /* Уменьшаем размер текста */
-    line-height: 1.4; /* Интервал между строками */
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Добавляем тень для визуального выделения */
-}
-
-.suggestions li {
-    padding: 8px 12px; /* Уменьшаем отступы */
+button {
+    background: #007bff;
+    color: white;
+    font-weight: bold;
     cursor: pointer;
-    white-space: nowrap; /* Запрещаем перенос текста */
-    overflow: hidden; /* Скрываем текст, выходящий за пределы */
-    text-overflow: ellipsis; /* Добавляем многоточие для длинных текстов */
+    border: none;
+    transition: transform 0.3s ease, background 0.3s ease;
 }
 
-.suggestions li:hover {
-    background-color: #f0f0f0; /* Цвет фона при наведении */
+button:hover {
+    background: #0056b3;
+    transform: scale(1.05);
 }
 
 .footer-buttons {
@@ -117,11 +81,9 @@ button:hover {
 
 .btn {
     padding: 10px 20px;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
+    border-radius: 8px;
     font-weight: bold;
-    transition: background-color 0.3s ease;
+    transition: all 0.3s ease;
 }
 
 .btn:hover {
@@ -129,11 +91,67 @@ button:hover {
 }
 
 .tiktok-btn {
-    background-color: #000;
+    background: #000;
     color: #fff;
     text-decoration: none;
 }
 
 .tiktok-btn i {
     margin-right: 5px;
+}
+
+/* Подсказки */
+.suggestions {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+    border: 1px solid #ccc;
+    max-height: 150px;
+    overflow-y: auto;
+    background: white;
+    position: absolute;
+    width: 100%;
+    box-sizing: border-box;
+    z-index: 10;
+    left: 0;
+    top: 100%;
+    font-size: 14px;
+    line-height: 1.4;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: opacity 0.3s ease, transform 0.3s ease, visibility 0.3s ease;
+}
+
+.suggestions.active {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.suggestions li {
+    padding: 8px 12px;
+    cursor: pointer;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: background 0.3s ease;
+}
+
+.suggestions li:hover {
+    background-color: #f0f0f0;
+}
+
+/* Анимации */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
