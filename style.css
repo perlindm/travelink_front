@@ -79,20 +79,34 @@ button:hover {
 }
 
 .suggestions {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
     border: 1px solid #ccc;
-    max-height: 150px;
-    overflow-y: auto;
-    position: absolute;
+    max-height: 150px; /* Ограничение высоты */
+    overflow-y: auto; /* Прокрутка при необходимости */
     background: white;
-    width: 100%;
-    z-index: 1000;
+    position: absolute;
+    width: 100%; /* Ширина равна ширине поля ввода */
+    box-sizing: border-box; /* Учитываем padding и border в ширине */
+    z-index: 10; /* Размещаем поверх других элементов */
+    left: 0; /* Выравнивание по левому краю поля ввода */
+    top: 100%; /* Размещаем сразу под полем ввода */
+    font-size: 14px; /* Уменьшаем размер текста */
+    line-height: 1.4; /* Интервал между строками */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Добавляем тень для визуального выделения */
 }
+
 .suggestions li {
-    padding: 8px;
+    padding: 8px 12px; /* Уменьшаем отступы */
     cursor: pointer;
+    white-space: nowrap; /* Запрещаем перенос текста */
+    overflow: hidden; /* Скрываем текст, выходящий за пределы */
+    text-overflow: ellipsis; /* Добавляем многоточие для длинных текстов */
 }
+
 .suggestions li:hover {
-    background-color: #f0f0f0;
+    background-color: #f0f0f0; /* Цвет фона при наведении */
 }
 
 .footer-buttons {
